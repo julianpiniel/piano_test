@@ -13,13 +13,15 @@ const URL = `https://sandbox.piano.io/api/v3/publisher/user/list?api_token=${API
 const usersA = [],
 	usersB = [];
 let apiUsers = [];
+let apiEmails = [];
 
 // Declare each async process as a promise
 
 const requestPromise = new Promise((resolve) => {
 	axios.get(URL).then((request) => {
-		apiUsers = request.data.users.map((user) => user.uid);
-		console.log('USERS', apiUsers);
+		apiUsers = request.data.users;
+		apiEmails = request.data.users.map((user) => user.email);
+		console.log('USERS', apiUsers.length, typeof apiUsers);
 		resolve();
 	});
 });
@@ -64,8 +66,14 @@ Promise.all([file1Promise, file2Promise, requestPromise]).then(() => {
 	});
 
 	// Filter users if repeated in API
-	usersA.forEach((user, index) => {
-		apiUsers.includes(user.user_id) ? usersA.splice(index, 1) : null;
+	usersA.forEach((user) => {
+		let index = apiUsers.findIndex(
+			(apiUser) => apiUser.email === user.email
+		);
+		if (index !== -1) {
+			let correctId = apiUsers[index].uid;
+			user.user_id = correctId;
+		}
 	});
 	console.table(usersA);
 
